@@ -1,0 +1,23 @@
+ - name: Install mariadb
+   yum: name={{ item }} state=present
+   become: yes
+   with_items:
+   - mariadb-server
+   - mariadb
+   - mariadb-devel
+
+ - name: Install zabbix-server-mysql
+   yum: name=zabbix-server-mysql-{{ zabbix_server_version }} state=present
+   become: yes
+   
+ - name: Create zabbix database
+   mysql_db: name={{ zabbix_db_name }} state=present
+   become: yes
+
+ - name: Install MySQL python module
+   pip: name=MySQL-python
+   become: yes
+
+ - name: Create zabbix database user
+   mysql_user: name={{ zabbix_db_user }} password={{ zabbix_db_password }} priv=*.{{ zabbix_db_name}}:ALL state=present
+   become: yes

@@ -1,0 +1,88 @@
+ - name: Install packets
+   yum: name={{ item }} state=present
+   become: yes
+   with_items:
+    - rpm-build
+    - postgresql-devel
+    - net-snmp-devel
+    - openldap-devel
+    - gnutls-devel
+    - sqlite-devel
+    - unixODBC-devel
+    - curl-devel
+    - OpenIPMI-devel
+    - libssh2-devel
+    - java-devel
+    - libxml2-devel
+    - iksemel-devel
+    - patch
+
+ - name: Copy patches
+   copy: src={{ item }}.patch dest=/tmp/{{ item }}.patch
+   become: yes
+   with_items:
+    - frontend
+    - source
+
+ - name: Untar source for patching
+   #TODO: How we'd determine path ?
+   #unarchive: src={{ zabbix_rpmbuild_dir }}/SOURCES/zabbix-{{ zabbix_server_version }}.tar.gz dest=/tmp remote_src=yes
+   shell: tar xf {{ zabbix_rpmbuild_dir }}/SOURCES/zabbix-{{ zabbix_server_version }}.tar.gz -C /tmp
+   become: yes
+   
+ - name: Apply source patch
+   #TODO: How we should apply ? With shell or with ansible external module ?
+   shell: patch /tmp/zabbix-{{ zabbix_server_version }}/{{ zabbix_server_source_to_patch }} < /tmp/source.patch
+   become: yes
+   
+ - name: Apply frontend patch
+   #TODO: How we should apply ? With shell or with ansible external module ?
+   shell: patch -R --ignore-whitespace /tmp/zabbix-{{ zabbix_server_version }}/{{ zabbix_server_frontend_to_patch }} < /tmp/frontend.patch
+   become: yes
+
+ - name: Create tar arch with patched files
+   #TODO: How we should create arch ? Shell or external module?
+   #TODO: how to determine path ?
+   shell: tar -zcf {{ zabbix_rpmbuild_dir}}/SOURCES/zabbix-{{ zabbix_server_version }}.tar.gz -C /tmp/ ./zabbix-{{ zabbix_server_version }}
+   become: yes
+
+ - name: Clean up sources
+   file: name=/tmp/zabbix-{{ zabbix_server_version }} state=absent
+   become: yes
+ 
+ - name: Build RPMs
+   shell: rpmbuild -ba zabbix.spec chdir={{ zabbix_rpmbuild_dir }}/SPECS
+
+    
+# Install patch command
+
+# Create user packager
+
+# tar xfv /root/rpmbuild/SOURCES/zabbix-3.0.4.tar.gz -C /tmp
+# patch /tmp/zabbix-3.0.4/src/libs/zbxdbcache/valuecache.c < /opt/build/tmp/patches/source.patch
+# patch -R --ignore-whitespace /tmp/zabbix-3.0.4/frontends/php/include/classes/api/managers/CHistoryManager.php < /opt/build/tmp/patches/frontend.patch
+# tar -zcvf /root/rpmbuild/SOURCES/zabbix-3.0.4.tar.gz -C /tmp/ ./zabbix-3.0.4
+# rm -Rf /tmp/zabbix-3.0.4/
+# cd ~/rpmbuild/SPECS
+# rpmbuild -ba zabbix.spec
+
+
+# Requirements
+#postgresql-devel
+#net-snmp-devel
+#openldap-devel
+#gnutls-devel
+#sqlite-devel
+#unixODBC-devel
+#curl-devel
+#OpenIPMI-devel
+#libssh2-devel
+#java-devel
+#libxml2-devel
+#iksemel-devel
+
+
+
+# Apply patch | patch /file/for/patching /path/to/source.patch | ./src/libs/zbxdbcache/valuecache.c
+# Apply patch for frontend | patch  --ignore-whitespace /opt/build/tmp/zabbix-3.0.4/frontends/php/include/classes/api/managers/CHistoryManager.php < patch
+

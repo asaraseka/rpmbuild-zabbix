@@ -1,0 +1,4 @@
+zabbix_server_version: 3.0.4
+zabbix_server_source_to_patch: src/libs/zbxdbcache/valuecache.c
+zabbix_server_frontend_to_patch: frontends/php/include/classes/api/managers/CHistoryManager.php
+zabbix_rpmbuild_dir: /root/rpmbuild
